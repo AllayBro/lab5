@@ -1,0 +1,24 @@
+meta {
+  name: GatewayService
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8081/api/gateway/submitInvoice
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "customerId": "C123",
+    "amount": 2000
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

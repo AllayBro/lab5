@@ -1,0 +1,34 @@
+meta {
+  name: NotifyServer
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8083/api/notify
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "customerId": "C123",
+    "invoiceId": "INV-3796",
+    "status": "Created"
+  }
+  
+}
+
+body:xml {
+  {
+    "customerId": "C123",
+    "invoiceId": "INV-3796",
+    "status": "Created"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

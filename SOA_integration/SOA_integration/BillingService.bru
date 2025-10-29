@@ -1,0 +1,24 @@
+meta {
+  name: BillingService
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8082/api/billing/invoice
+  body: xml
+  auth: inherit
+}
+
+body:xml {
+  <InvoiceRequest>
+      <CustomerId>C123</CustomerId>
+      <Amount>2000</Amount>
+  </InvoiceRequest>
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
