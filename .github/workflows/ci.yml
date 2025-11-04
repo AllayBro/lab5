@@ -20,10 +20,23 @@ jobs:
 
       - name: Build JARs
         run: |
-          cd Service1 && ./mvnw clean package -DskipTests && cd ..
-          cd Service2 && ./mvnw clean package -DskipTests && cd ..
-          cd Service3 && ./mvnw clean package -DskipTests && cd ..
-          cd Service4 && ./mvnw clean package -DskipTests && cd ..
+          chmod +x */mvnw || true
+          BUILD_OK=true
+          for dir in service1 service2 service3 service4 Service1 Service2 Service3 Service4; do
+            if [ -d "$dir" ]; then
+              echo "Building $dir..."
+              cd $dir
+              if ! mvn -B clean package -DskipTests; then
+                echo "Build failed in $dir"
+                BUILD_OK=false
+              fi
+              cd ..
+            fi
+          done
+          if [ "$BUILD_OK" = false ]; then
+            echo "One or more builds failed. Aborting pipeline."
+            exit 1
+          fi
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -33,15 +46,14 @@ jobs:
 
       - name: Build and push Docker images
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/crm-service:latest ./Service1
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/gateway-service:latest ./Service2
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/billing-service:latest ./Service3
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/notification-service:latest ./Service4
-
-          docker push ${{ secrets.DOCKER_USERNAME }}/crm-service:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/gateway-service:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/billing-service:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+          for dir in Service1 Service2 Service3 Service4; do
+            lower=$(echo "$dir" | tr '[:upper:]' '[:lower:]')
+            service=$(echo "$lower" | sed 's/service//g')
+            image="${{ secrets.DOCKER_USERNAME }}/${service}-service:latest"
+            echo "Building and pushing $image"
+            docker build -t $image ./$dir
+            docker push $image
+          done
 
       - name: Validate Docker Compose
         run: docker-compose -f integration-lab/docker-compose.yml config
