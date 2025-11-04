@@ -67,4 +67,4 @@ jobs:
           sudo apt-get install -y docker-compose
 
       - name: Validate Docker Compose
-        run: docker-compose -f integration-lab/docker-compose.yml config
+        run: docker compose -f integration-lab/docker-compose.yml config
