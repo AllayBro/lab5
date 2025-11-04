@@ -68,3 +68,33 @@ jobs:
 
       - name: Validate Docker Compose configuration file
         run: docker compose -f integration-lab/docker-compose.yml config
+
+      - name: Deploy integration environment
+        run: |
+          docker compose -f integration-lab/docker-compose.yml up -d
+          sleep 15
+          docker ps
+    
+      - name: Verify running containers health
+        run: |
+          for service in 1 2 3 4; do
+            echo "Checking service $service..."
+            if ! docker logs allaybro_${service}-service | grep -q "Started"; then
+              echo "Service $service did not start properly"
+              exit 1
+            fi
+          done
+    
+      - name: Run basic API availability tests
+        run: |
+          for port in 8081 8082 8083 8084; do
+            echo "Testing endpoint on port $port"
+            if ! curl -sSf http://localhost:$port/actuator/health > /dev/null; then
+              echo "Service on port $port is not healthy"
+              exit 1
+            fi
+          done
+    
+      - name: Tear down integration environment
+        if: always()
+        run: docker compose -f integration-lab/docker-compose.yml down
