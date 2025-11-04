@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  crm:
+    image: crm-service
+    container_name: crm
+    ports:
+      - "8080:8080"
+    depends_on:
+      - gateway
+    networks:
+      - lab-net
+
+  gateway:
+    image: gateway-service
+    container_name: gateway
+    ports:
+      - "8081:8081"
+    depends_on:
+      - billing
+    networks:
+      - lab-net
+
+  billing:
+    image: billing-service
+    container_name: billing
+    ports:
+      - "8082:8082"
+    networks:
+      - lab-net
+
+  notification:
+    image: notification-service
+    container_name: notification
+    ports:
+      - "8083:8083"
+    networks:
+      - lab-net
+
+networks:
+  lab-net:
+    driver: bridge
