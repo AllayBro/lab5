@@ -14,7 +14,6 @@ public class GatewayController {
 
     @PostMapping("/submitInvoice")
     public ResponseEntity<?> submitInvoice(@RequestBody Map<String, Object> json) {
-        // Конвертация JSON → XML
         String xmlRequest = String.format("""
                 <InvoiceRequest>
                     <CustomerId>%s</CustomerId>
@@ -34,7 +33,7 @@ public class GatewayController {
 
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "http://localhost:8082/api/billing/invoice", entity, String.class);
+                    "http://billing:8082/api/billing/invoice", entity, String.class);
 
             return ResponseEntity.ok(Map.of(
                     "billingResponse", response.getBody()

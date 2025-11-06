@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestTemplate;
 
-
 import java.util.Map;
 
 @RestController
@@ -25,14 +24,14 @@ public class CrmController {
         RestTemplate restTemplate = new RestTemplate();
 
         try {
-            // 1. CRM -> Gateway
+            // CRM → Gateway внутри Docker сети
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                    "http://localhost:8081/api/gateway/submitInvoice", request, Map.class
+                    "http://gateway:8081/api/gateway/submitInvoice", request, Map.class
             );
 
-            String invoiceId = "INV-" + (int)(Math.random() * 10000);
+            String invoiceId = "INV-" + (int) (Math.random() * 10000);
 
-            // 2. CRM -> Notification (асинхронно)
+            // CRM → Notification (асинхронно)
             Map<String, Object> notification = Map.of(
                     "customerId", request.get("customerId"),
                     "invoiceId", invoiceId,
@@ -41,13 +40,12 @@ public class CrmController {
 
             try {
                 restTemplate.postForEntity(
-                        "http://localhost:8083/api/notify", notification, Void.class
+                        "http://notification:8083/api/notify", notification, Void.class
                 );
             } catch (Exception ex) {
                 System.out.println("Notification service unavailable: " + ex.getMessage());
             }
 
-            // 3. Ответ клиенту
             return ResponseEntity.ok(Map.of(
                     "status", "ok",
                     "crmInvoiceId", invoiceId,

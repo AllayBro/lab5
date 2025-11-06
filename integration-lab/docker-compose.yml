@@ -1,28 +1,34 @@
-version: '3.8'
+version: "3.8"
 
 services:
   crm:
-    image: crm-service
+    image: allaybro/1-service:latest
     container_name: crm
     ports:
       - "8080:8080"
+    environment:
+      - GATEWAY_URL=http://gateway:8081
+      - NOTIFICATION_URL=http://notification:8083
     depends_on:
       - gateway
+      - notification
     networks:
       - lab-net
 
   gateway:
-    image: gateway-service
+    image: allaybro/2-service:latest
     container_name: gateway
     ports:
       - "8081:8081"
+    environment:
+      - BILLING_URL=http://billing:8082
     depends_on:
       - billing
     networks:
       - lab-net
 
   billing:
-    image: billing-service
+    image: allaybro/3-service:latest
     container_name: billing
     ports:
       - "8082:8082"
@@ -30,7 +36,7 @@ services:
       - lab-net
 
   notification:
-    image: notification-service
+    image: allaybro/4-service:latest
     container_name: notification
     ports:
       - "8083:8083"
