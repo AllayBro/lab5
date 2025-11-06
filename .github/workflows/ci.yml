@@ -21,16 +21,19 @@ jobs:
       - name: Build Java Archive files for all services
         run: |
           chmod +x */mvnw || true
-          for dir in Service1 Service2 Service3 Service4; do
+          for dir in crm-service gateway-service billing-service notification-service; do
             if [ -d "$dir" ]; then
               echo "Building $dir..."
               cd "$dir"
-              mvn -B clean package -DskipTests || exit 1
+              ./mvnw -B clean package -DskipTests || exit 1
               cd ..
+            else
+              echo "Directory $dir not found"
+              exit 1
             fi
           done
 
-      - name: Configure Domain Name System resolver
+      - name: Configure DNS resolver
         run: |
           echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
           cat /etc/resolv.conf
@@ -43,18 +46,22 @@ jobs:
 
       - name: Build and push Docker container images for all services
         run: |
-          for dir in Service1 Service2 Service3 Service4; do
-            num=$(echo "$dir" | tr -cd '0-9')
-            image="allaybro/${num}-service:latest"
-            echo "Building Docker image $image"
-            docker build -t "$image" "./$dir"
-            echo "Pushing Docker image $image to Docker Hub"
-            docker push "$image"
+          declare -A IMAGES=(
+            ["crm-service"]="allaybro/1-service:latest"
+            ["gateway-service"]="allaybro/2-service:latest"
+            ["billing-service"]="allaybro/3-service:latest"
+            ["notification-service"]="allaybro/4-service:latest"
+          )
+          for dir in "${!IMAGES[@]}"; do
+            echo "Building image ${IMAGES[$dir]} from $dir"
+            docker build -t "${IMAGES[$dir]}" "./$dir"
+            echo "Pushing ${IMAGES[$dir]}..."
+            docker push "${IMAGES[$dir]}"
           done
 
       - name: Install Docker Compose utility
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y docker-compose
 
       - name: Validate Docker Compose configuration file
