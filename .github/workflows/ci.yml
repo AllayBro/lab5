@@ -21,22 +21,14 @@ jobs:
       - name: Build Java Archive files for all services
         run: |
           chmod +x */mvnw || true
-          BUILD_ALL_BUILDS_SUCCEEDED=true
-          for service_directory in service1 service2 service3 service4 Service1 Service2 Service3 Service4; do
-            if [ -d "$service_directory" ]; then
-              echo "Starting build for directory ${service_directory}"
-              cd "${service_directory}"
-              if ! mvn -B clean package -DskipTests; then
-                echo "Build failed in directory ${service_directory}"
-                BUILD_ALL_BUILDS_SUCCEEDED=false
-              fi
+          for dir in Service1 Service2 Service3 Service4; do
+            if [ -d "$dir" ]; then
+              echo "Building $dir..."
+              cd "$dir"
+              mvn -B clean package -DskipTests || exit 1
               cd ..
             fi
           done
-          if [ "${BUILD_ALL_BUILDS_SUCCEEDED}" = false ]; then
-            echo "At least one module failed to build. Stopping the workflow."
-            exit 1
-          fi
 
       - name: Configure Domain Name System resolver
         run: |
@@ -51,14 +43,13 @@ jobs:
 
       - name: Build and push Docker container images for all services
         run: |
-          for service_directory in Service1 Service2 Service3 Service4; do
-            lowercase_directory_name=$(echo "${service_directory}" | tr '[:upper:]' '[:lower:]')
-            service_numeric_suffix=$(echo "${lowercase_directory_name}" | sed 's/service//g')
-            image_name="${{ secrets.DOCKER_USERNAME }}/${service_numeric_suffix}-service:latest"
-            echo "Building Docker container image ${image_name} from directory ${service_directory}"
-            docker build -t "${image_name}" "./${service_directory}"
-            echo "Pushing Docker container image ${image_name} to the Docker Hub registry"
-            docker push "${image_name}"
+          for dir in Service1 Service2 Service3 Service4; do
+            num=$(echo "$dir" | tr -cd '0-9')
+            image="allaybro/${num}-service:latest"
+            echo "Building Docker image $image"
+            docker build -t "$image" "./$dir"
+            echo "Pushing Docker image $image to Docker Hub"
+            docker push "$image"
           done
 
       - name: Install Docker Compose utility
@@ -67,4 +58,4 @@ jobs:
           sudo apt-get install -y docker-compose
 
       - name: Validate Docker Compose configuration file
-        run: docker compose -f integration-lab/docker-compose.yml config
+        run: docker-compose -f integration-lab/docker-compose.yml config
