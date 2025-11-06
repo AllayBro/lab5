@@ -21,7 +21,7 @@ jobs:
       - name: Build Java Archive files for all services
         run: |
           chmod +x */mvnw || true
-          for dir in crm-service gateway-service billing-service notification-service; do
+          for dir in Service1 Service2 Service3 Service4; do
             if [ -d "$dir" ]; then
               echo "Building $dir..."
               cd "$dir"
@@ -47,10 +47,10 @@ jobs:
       - name: Build and push Docker container images for all services
         run: |
           declare -A IMAGES=(
-            ["crm-service"]="allaybro/1-service:latest"
-            ["gateway-service"]="allaybro/2-service:latest"
-            ["billing-service"]="allaybro/3-service:latest"
-            ["notification-service"]="allaybro/4-service:latest"
+            ["Service1"]="allaybro/1-service:latest"
+            ["Service2"]="allaybro/2-service:latest"
+            ["Service3"]="allaybro/3-service:latest"
+            ["Service4"]="allaybro/4-service:latest"
           )
           for dir in "${!IMAGES[@]}"; do
             echo "Building image ${IMAGES[$dir]} from $dir"
