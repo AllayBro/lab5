@@ -58,6 +58,14 @@ jobs:
             docker push "${IMAGES[$dir]}"
           done
 
+      - name: Install Docker Compose utility
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y docker-compose
+
+      - name: Validate Docker Compose configuration file
+        run: docker-compose -f integration-lab/docker-compose.yml config
+
   deploy:
     name: CD Deploy to Kubernetes
     runs-on: ubuntu-latest
