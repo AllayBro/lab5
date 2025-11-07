@@ -66,3 +66,13 @@ jobs:
 
       - name: Validate Docker Compose configuration file
         run: docker-compose -f integration-lab/docker-compose.yml config
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Ensure namespace lab5 exists
+        run: |
+          kubectl --kubeconfig kubeconfig.yaml create namespace lab5 --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3

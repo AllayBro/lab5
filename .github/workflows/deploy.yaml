@@ -1,0 +1,36 @@
+name: CD Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decode kubeconfig
+        run: |
+          echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Ensure namespace lab5
+        run: |
+          kubectl --kubeconfig kubeconfig.yaml create ns lab5 --dry-run=client -o yaml | kubectl --kubeconfig kubeconfig.yaml apply -f -
+
+      - name: Deploy all services
+        run: |
+          helm upgrade --install crm ./chart-crm -n lab5 --kubeconfig kubeconfig.yaml
+          helm upgrade --install gateway ./chart-gateway -n lab5 --kubeconfig kubeconfig.yaml
+          helm upgrade --install billing ./chart-billing -n lab5 --kubeconfig kubeconfig.yaml
+          helm upgrade --install notification ./chart-notification -n lab5 --kubeconfig kubeconfig.yaml
