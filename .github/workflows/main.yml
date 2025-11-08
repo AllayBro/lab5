@@ -90,7 +90,8 @@ jobs:
 
       - name: Ensure namespace lab5 exists
         run: |
-          kubectl --kubeconfig kubeconfig.yaml create namespace lab5 --dry-run=client -o yaml | kubectl apply -f -
+          kubectl --kubeconfig kubeconfig.yaml create namespace lab5 --dry-run=client -o yaml | \
+          kubectl apply -f - --validate=false 
 
       - name: Helm deploy CRM
         run: |
