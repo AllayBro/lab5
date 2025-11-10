@@ -28,10 +28,13 @@ jobs:
               Write-Host "Building $dir"
               Set-Location $dir
               if (Test-Path ".\mvnw.bat") {
-                ./mvnw.bat -B clean package -DskipTests
-              } elseif (Test-Path ".\mvnw") {
-                bash -c "./mvnw -B clean package -DskipTests"
+                Write-Host "Using mvnw.bat in $dir"
+                .\mvnw.bat -B clean package -DskipTests
+              } elseif (Test-Path ".\mvnw.cmd") {
+                Write-Host "Using mvnw.cmd in $dir"
+                .\mvnw.cmd -B clean package -DskipTests
               } else {
+                Write-Host "Using global Maven in PATH"
                 mvn -B clean package -DskipTests
               }
               Set-Location ..
@@ -59,7 +62,9 @@ jobs:
           foreach ($key in $images.Keys) {
             Write-Host "Building $($images[$key]) from $key"
             docker build -t $images[$key] "./$key"
+            if ($LASTEXITCODE -ne 0) { exit 1 }
             docker push $images[$key]
+            if ($LASTEXITCODE -ne 0) { exit 1 }
           }
 
       - name: Validate Docker Compose configuration file
@@ -95,12 +100,12 @@ jobs:
       - name: Ensure namespace lab5 exists
         shell: pwsh
         run: |
-          $exists = kubectl --kubeconfig kubeconfig.yaml get ns lab5 -o json 2>$null
-          if (-not $?) {
+          try {
+            kubectl --kubeconfig kubeconfig.yaml get ns lab5 | Out-Null
+            Write-Host "Namespace lab5 already exists"
+          } catch {
             Write-Host "Creating namespace lab5"
             kubectl --kubeconfig kubeconfig.yaml create namespace lab5
-          } else {
-            Write-Host "Namespace lab5 already exists"
           }
 
       - name: Helm deploy CRM
