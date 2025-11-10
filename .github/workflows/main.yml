@@ -132,19 +132,19 @@ jobs:
 
       - name: Helm deploy CRM
         shell: pwsh
-        run: helm upgrade --install crm ./chart-crm -n lab5 --kubeconfig kubeconfig.yaml
+        run: helm upgrade --install crm integration-lab/chart-crm -n lab5 --kubeconfig kubeconfig.yaml
 
       - name: Helm deploy Gateway
         shell: pwsh
-        run: helm upgrade --install gateway ./chart-gateway -n lab5 --kubeconfig kubeconfig.yaml
+        run: helm upgrade --install gateway integration-lab/chart-gateway -n lab5 --kubeconfig kubeconfig.yaml
 
       - name: Helm deploy Billing
         shell: pwsh
-        run: helm upgrade --install billing ./chart-billing -n lab5 --kubeconfig kubeconfig.yaml
+        run: helm upgrade --install billing integration-lab/chart-billing -n lab5 --kubeconfig kubeconfig.yaml
 
       - name: Helm deploy Notification
         shell: pwsh
-        run: helm upgrade --install notification ./chart-notification -n lab5 --kubeconfig kubeconfig.yaml
+        run: helm upgrade --install notification integration-lab/chart-notification -n lab5 --kubeconfig kubeconfig.yaml
 
       - name: Apply Ingress
         shell: pwsh
