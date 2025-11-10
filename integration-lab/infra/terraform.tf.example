@@ -1,0 +1,20 @@
+# Альтернативный вариант с использованием зеркала (если доступно)
+# Скопируйте этот файл в terraform.tf и раскомментируйте при необходимости
+
+# terraform {
+#   required_providers {
+#     kubernetes = {
+#       source  = "hashicorp/kubernetes"
+#       version = "~> 1.13.5"
+#     }
+#   }
+#   
+#   # Если используете зеркало
+#   # required_providers {
+#   #   kubernetes = {
+#   #     source  = "terraform-mirror.yandexcloud.net/hashicorp/kubernetes"
+#   #     version = "~> 1.13.5"
+#   #   }
+#   # }
+# }
+
