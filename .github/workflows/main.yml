@@ -20,65 +20,51 @@ jobs:
           java-version: 17
 
       - name: Build all Maven services
-        shell: pwsh
+        shell: cmd
         run: |
-          $services = @("Service1", "Service2", "Service3", "Service4")
+          @echo off
+          setlocal enabledelayedexpansion
           
-          foreach ($dir in $services) {
-            if (-not (Test-Path $dir)) {
-              Write-Host "ERROR: Directory $dir not found" -ForegroundColor Red
-              exit 1
-            }
-            
-            Write-Host "========================================" -ForegroundColor Cyan
-            Write-Host "Building $dir" -ForegroundColor Cyan
-            Write-Host "========================================" -ForegroundColor Cyan
-            
-            Push-Location $dir
-            
-            try {
-              if (Test-Path "mvnw.cmd") {
-                Write-Host "Using mvnw.cmd wrapper"
-                $mvnwFullPath = (Get-Item "mvnw.cmd").FullName
-                Write-Host "Maven wrapper: $mvnwFullPath"
-                
-                # Вызываем mvnw.cmd и проверяем результат
-                & $mvnwFullPath -B clean package -DskipTests
-                
-                # Проверяем код выхода (в PowerShell 7 $LASTEXITCODE работает для нативных программ)
-                if ($LASTEXITCODE -ne 0 -or -not $?) {
-                  Write-Host "Build failed for $dir (exit code: $LASTEXITCODE)" -ForegroundColor Red
-                  exit 1
-                }
-              }
-              elseif (Get-Command mvn -ErrorAction SilentlyContinue) {
-                Write-Host "Using global Maven installation"
-                mvn -B clean package -DskipTests
-                
-                if ($LASTEXITCODE -ne 0 -or -not $?) {
-                  Write-Host "Build failed for $dir (exit code: $LASTEXITCODE)" -ForegroundColor Red
-                  exit 1
-                }
-              }
-              else {
-                Write-Host "ERROR: No Maven wrapper or Maven found in $dir" -ForegroundColor Red
-                exit 1
-              }
-              
-              Write-Host "Successfully built $dir" -ForegroundColor Green
-            }
-            catch {
-              Write-Host "ERROR: Exception during build of $dir : $_" -ForegroundColor Red
-              exit 1
-            }
-            finally {
-              Pop-Location
-            }
-          }
+          set ROOT_DIR=%CD%
+          set SERVICES=Service1 Service2 Service3 Service4
           
-          Write-Host "========================================" -ForegroundColor Green
-          Write-Host "All services built successfully!" -ForegroundColor Green
-          Write-Host "========================================" -ForegroundColor Green
+          for %%S in (!SERVICES!) do (
+            echo ========================================
+            echo Building %%S
+            echo ========================================
+            
+            if not exist "%%S" (
+              echo ERROR: Directory %%S not found
+              exit /b 1
+            )
+            
+            cd /d "%%S"
+            
+            if exist "mvnw.cmd" (
+              echo Using mvnw.cmd wrapper
+              call mvnw.cmd -B clean package -DskipTests
+              if errorlevel 1 (
+                echo Build failed for %%S
+                cd /d "!ROOT_DIR!"
+                exit /b 1
+              )
+            ) else (
+              echo Using global Maven
+              mvn -B clean package -DskipTests
+              if errorlevel 1 (
+                echo Build failed for %%S
+                cd /d "!ROOT_DIR!"
+                exit /b 1
+              )
+            )
+            
+            echo Successfully built %%S
+            cd /d "!ROOT_DIR!"
+          )
+          
+          echo ========================================
+          echo All services built successfully!
+          echo ========================================
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
