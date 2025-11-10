@@ -1,0 +1,11 @@
+﻿{
+  "agentId": 21,
+  "agentName": "ALLAYBRO",
+  "poolId": 1,
+  "poolName": "Default",
+  "serverUrl": "https://pipelinesghubeus26.actions.githubusercontent.com/MwIYnO52zpMgLLygiQvQnGKBf8JKoMd9nwiDxwGp4cGODO3Pgk/",
+  "gitHubUrl": "https://github.com/AllayBro/lab5",
+  "workFolder": "_work",
+  "useV2Flow": true,
+  "serverUrlV2": "https://broker.actions.githubusercontent.com/"
+}
