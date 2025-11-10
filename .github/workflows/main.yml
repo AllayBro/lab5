@@ -22,37 +22,63 @@ jobs:
       - name: Build all Maven services
         shell: pwsh
         run: |
-          $services = "Service1","Service2","Service3","Service4"
+          $services = @("Service1", "Service2", "Service3", "Service4")
+          
           foreach ($dir in $services) {
-            if (Test-Path $dir) {
-              Write-Host "Building $dir"
-              Push-Location $dir
-
-              if (Test-Path ".\mvnw.cmd") {
-                Write-Host "Using mvnw.cmd in $dir"
-                & cmd.exe /d /c ".\mvnw.cmd -B clean package -DskipTests"
-              } elseif (Test-Path ".\mvnw.bat") {
-                Write-Host "Using mvnw.bat in $dir"
-                & cmd.exe /d /c ".\mvnw.bat -B clean package -DskipTests"
-              } elseif (Get-Command mvn -ErrorAction SilentlyContinue) {
-                Write-Host "Using global Maven in PATH"
-                & cmd.exe /d /c "mvn -B clean package -DskipTests"
-              } else {
-                Write-Host "ERROR: No Maven wrapper or Maven found in $dir"
-                exit 1
-              }
-
-              if ($LASTEXITCODE -ne 0) {
-                Write-Host "Build failed for $dir (exit code $LASTEXITCODE)"
-                exit 1
-              }
-
-              Pop-Location
-            } else {
-              Write-Host "Directory $dir not found"
+            if (-not (Test-Path $dir)) {
+              Write-Host "ERROR: Directory $dir not found" -ForegroundColor Red
               exit 1
             }
+            
+            Write-Host "========================================" -ForegroundColor Cyan
+            Write-Host "Building $dir" -ForegroundColor Cyan
+            Write-Host "========================================" -ForegroundColor Cyan
+            
+            Push-Location $dir
+            
+            try {
+              if (Test-Path "mvnw.cmd") {
+                Write-Host "Using mvnw.cmd wrapper"
+                $mvnwFullPath = (Get-Item "mvnw.cmd").FullName
+                Write-Host "Maven wrapper: $mvnwFullPath"
+                
+                # Вызываем mvnw.cmd и проверяем результат
+                & $mvnwFullPath -B clean package -DskipTests
+                
+                # Проверяем код выхода (в PowerShell 7 $LASTEXITCODE работает для нативных программ)
+                if ($LASTEXITCODE -ne 0 -or -not $?) {
+                  Write-Host "Build failed for $dir (exit code: $LASTEXITCODE)" -ForegroundColor Red
+                  exit 1
+                }
+              }
+              elseif (Get-Command mvn -ErrorAction SilentlyContinue) {
+                Write-Host "Using global Maven installation"
+                mvn -B clean package -DskipTests
+                
+                if ($LASTEXITCODE -ne 0 -or -not $?) {
+                  Write-Host "Build failed for $dir (exit code: $LASTEXITCODE)" -ForegroundColor Red
+                  exit 1
+                }
+              }
+              else {
+                Write-Host "ERROR: No Maven wrapper or Maven found in $dir" -ForegroundColor Red
+                exit 1
+              }
+              
+              Write-Host "Successfully built $dir" -ForegroundColor Green
+            }
+            catch {
+              Write-Host "ERROR: Exception during build of $dir : $_" -ForegroundColor Red
+              exit 1
+            }
+            finally {
+              Pop-Location
+            }
           }
+          
+          Write-Host "========================================" -ForegroundColor Green
+          Write-Host "All services built successfully!" -ForegroundColor Green
+          Write-Host "========================================" -ForegroundColor Green
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
