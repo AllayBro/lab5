@@ -27,22 +27,33 @@ jobs:
             if (Test-Path $dir) {
               Write-Host "Building $dir"
               Set-Location $dir
-              if (Test-Path ".\mvnw.bat") {
-                Write-Host "Using mvnw.bat in $dir"
-                .\mvnw.bat -B clean package -DskipTests
-              } elseif (Test-Path ".\mvnw.cmd") {
+
+              if (Test-Path ".\mvnw.cmd") {
                 Write-Host "Using mvnw.cmd in $dir"
-                .\mvnw.cmd -B clean package -DskipTests
-              } else {
+                cmd /c ".\mvnw.cmd -B clean package -DskipTests"
+              } elseif (Test-Path ".\mvnw.bat") {
+                Write-Host "Using mvnw.bat in $dir"
+                cmd /c ".\mvnw.bat -B clean package -DskipTests"
+              } elseif (Get-Command mvn -ErrorAction SilentlyContinue) {
                 Write-Host "Using global Maven in PATH"
                 mvn -B clean package -DskipTests
+              } else {
+                Write-Host "ERROR: No Maven wrapper or Maven found in $dir"
+                exit 1
               }
+
+              if ($LASTEXITCODE -ne 0) {
+                Write-Host "Build failed for $dir"
+                exit 1
+              }
+
               Set-Location ..
             } else {
               Write-Host "Directory $dir not found"
               exit 1
             }
           }
+
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
