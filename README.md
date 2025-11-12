@@ -26,7 +26,7 @@
    docker build -t allaybro/4-service:latest ./Service4
    docker-compose -f integration-lab/docker-compose.yml up
 
-Альтернатива: изменить integration-lab/docker-compose.yml, заменить image на build с соответствующими контекстами (./Service1 и т.д.), тогда docker-compose будет соб��рать образы автоматически.
+Альтернатива: изменить integration-lab/docker-compose.yml, заменить image на build с соответствующими контекстами (./Service1 и т.д.), тогда docker-compose будет собрать образы автоматически.
 
 Важные замечания
 - Текущий docker-compose использует image: allaybro/1-service:latest и т.п. — если образы не опубликованы в реестре, docker-compose попробует их скачать и завершится ошибкой. Либо собрать локально, либо изменить на build.
